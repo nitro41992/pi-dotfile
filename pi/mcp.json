@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "context-mode": {
+      "command": "/Users/narasimhakuchimanchi/.pi/agent/npm/node_modules/.bin/context-mode"
+    }
+  }
+}

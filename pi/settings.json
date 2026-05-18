@@ -1,9 +1,14 @@
 {
+  "theme": "github-dark-default",
   "lastChangelogVersion": "0.75.1",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.5",
-  "defaultThinkingLevel": "off",
+  "defaultThinkingLevel": "medium",
   "packages": [
-    "npm:pi-web-access"
+    "npm:@aliou/pi-guardrails",
+    "npm:pi-mcp-adapter",
+    "npm:context-mode",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@juicesharp/rpiv-todo"
   ]
 }

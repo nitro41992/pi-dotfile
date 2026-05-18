@@ -1,0 +1,16 @@
+{
+  "provider": "gemini",
+  "allowBrowserCookies": true,
+  "chromeProfile": "Default",
+  "workflow": "none",
+  "searchModel": "gemini-2.5-flash",
+  "youtube": {
+    "enabled": true,
+    "preferredModel": "gemini-2.5-flash"
+  },
+  "video": {
+    "enabled": true,
+    "preferredModel": "gemini-2.5-flash",
+    "maxSizeMB": 50
+  }
+}

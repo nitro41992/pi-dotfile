@@ -146,6 +146,35 @@ function transcriptLineFromEvent(obj: any): string | undefined {
 }
 
 export default function (pi: ExtensionAPI) {
+  const sendCodexResearchRequest = (args: string, ctx: any, feedbackMode: FeedbackMode = "compact") => {
+    const question = args.trim();
+    if (!question) {
+      ctx.ui.notify("Usage: /codex-research <question>", "warning");
+      return;
+    }
+    const message = `Use the ask_codex tool to research this. Use feedbackMode=${feedbackMode}. Question: ${question}`;
+    if (ctx.isIdle()) pi.sendUserMessage(message);
+    else {
+      pi.sendUserMessage(message, { deliverAs: "followUp" });
+      ctx.ui.notify("Codex research queued", "info");
+    }
+  };
+
+  pi.registerCommand("codex-research", {
+    description: "Ask Codex CLI to do read-only web/repo research",
+    handler: async (args, ctx) => sendCodexResearchRequest(args, ctx, "compact"),
+  });
+
+  pi.registerCommand("ask-codex", {
+    description: "Alias for /codex-research",
+    handler: async (args, ctx) => sendCodexResearchRequest(args, ctx, "compact"),
+  });
+
+  pi.registerCommand("codex-transcript", {
+    description: "Ask Codex with verbose transcript progress",
+    handler: async (args, ctx) => sendCodexResearchRequest(args, ctx, "transcript"),
+  });
+
   pi.registerTool({
     name: "ask_codex",
     label: "Ask Codex",

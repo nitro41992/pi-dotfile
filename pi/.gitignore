@@ -1,0 +1,9 @@
+# Never commit pi secrets/state
+/auth.json
+/sessions/
+/npm/
+/git/
+/bin/
+*.log
+.DS_Store
+node_modules/

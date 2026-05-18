@@ -12,6 +12,8 @@ import type { AgentMessage } from "@earendil-works/pi-agent-core";
 import type { AssistantMessage, TextContent } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Editor, type EditorTheme, Key, matchesKey, truncateToWidth } from "@earendil-works/pi-tui";
+import { EMPTY_STATE } from "@juicesharp/rpiv-todo/state/state.js";
+import { commitState } from "@juicesharp/rpiv-todo/state/store.js";
 import { extractPlanSteps, isSafeCommand, markCompletedSteps, type PlanStep } from "./utils.js";
 
 
@@ -176,17 +178,9 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 
 	function updateStatus(ctx: ExtensionContext): void {
 		// The installed todo extension is the single source of truth for task UI.
-		// Keep plan-mode to a compact status indicator to avoid duplicate checklists.
+		// Do not render any plan-mode status or widget; clear legacy UI keys.
 		ctx.ui.setWidget("plan-mode-todos", undefined);
-
-		if (executionMode && planSteps.length > 0) {
-			const done = planSteps.filter((step) => step.completed).length;
-			ctx.ui.setStatus("plan-mode", ctx.ui.theme.fg("accent", `📋 ${done}/${planSteps.length}`));
-		} else if (planModeEnabled) {
-			ctx.ui.setStatus("plan-mode", ctx.ui.theme.fg("warning", "⏸ plan"));
-		} else {
-			ctx.ui.setStatus("plan-mode", undefined);
-		}
+		ctx.ui.setStatus("plan-mode", undefined);
 	}
 
 	function toolNames(tools: Array<string | { name: string }>): string[] {
@@ -349,6 +343,12 @@ After completing a step, include [DONE:n] in your response. If the plan is wrong
 
 	pi.on("agent_end", async (event, ctx) => {
 		if (executionMode && planSteps.length > 0 && planSteps.every((step) => step.completed)) {
+			// Clear the todo overlay once an approved plan is fully complete.
+			// The todo extension is the source of truth for task UI; this removes
+			// completed plan tasks instead of leaving a stale 8/8 list on screen.
+			commitState({ tasks: [...EMPTY_STATE.tasks], nextId: EMPTY_STATE.nextId });
+			ctx.ui.setWidget("rpiv-todos", undefined);
+			pi.appendEntry("rpiv-todo-clear", { reason: "plan-mode-complete" });
 			pi.sendMessage({ customType: "plan-mode-complete", content: "**Approved plan complete.** ✓", display: true });
 			executionMode = false;
 			planSteps = [];
@@ -381,8 +381,16 @@ After completing a step, include [DONE:n] in your response. If the plan is wrong
 	pi.on("session_start", async (_event, ctx) => {
 		if (pi.getFlag("plan") === true) planModeEnabled = true;
 
-		const state = ctx.sessionManager
-			.getEntries()
+		const entries = ctx.sessionManager.getEntries();
+		const todoWasCleared = entries.some(
+			(entry: { type: string; customType?: string }) => entry.type === "custom" && entry.customType === "rpiv-todo-clear",
+		);
+		if (todoWasCleared) {
+			commitState({ tasks: [...EMPTY_STATE.tasks], nextId: EMPTY_STATE.nextId });
+			ctx.ui.setWidget("rpiv-todos", undefined);
+		}
+
+		const state = entries
 			.filter((entry: { type: string; customType?: string }) => entry.type === "custom" && entry.customType === "plan-mode")
 			.pop() as { data?: { enabled?: boolean; executing?: boolean; steps?: PlanStep[]; previousTools?: string[] } } | undefined;
 

@@ -201,8 +201,21 @@ export default function webSearchExtension(pi: ExtensionAPI): void {
       const query = clean(params.query);
       const { provider, results, traces } = await searchWithFallback(query, params.maxResults ?? 5, params.mode ?? "default", signal);
       const context = formatSearchContext(query, provider, results, traces);
-      const answer = params.summarize ? await localSummary(`Answer using only this web context. Cite URLs.\n\n${context}`, params.model ?? SUMMARY_MODEL, signal) : "";
-      return { content: [{ type: "text", text: answer ? `${answer}\n\n${context}` : context }], details: { provider, query, count: results.length, traces } };
+      let answer = "";
+      let summaryError: string | undefined;
+      if (params.summarize) {
+        try {
+          answer = await localSummary(`Answer using only this web context. Cite URLs.\n\n${context}`, params.model ?? SUMMARY_MODEL, signal);
+        } catch (e) {
+          summaryError = e instanceof Error ? e.message : String(e);
+        }
+      }
+      const text = answer
+        ? `${answer}\n\n${context}`
+        : summaryError
+          ? `Summary unavailable (${summaryError}). Returning raw web results.\n\n${context}`
+          : context;
+      return { content: [{ type: "text", text }], details: { provider, query, count: results.length, traces, summaryError } };
     },
   });
 

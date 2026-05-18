@@ -149,7 +149,7 @@ export default function (pi: ExtensionAPI) {
   const sendCodexResearchRequest = (args: string, ctx: any, feedbackMode: FeedbackMode = "compact") => {
     const question = args.trim();
     if (!question) {
-      ctx.ui.notify("Usage: /codex-research <question>", "warning");
+      ctx.ui.notify("Usage: /ask-codex <question>", "warning");
       return;
     }
     const message = `Use the ask_codex tool to research this. Use feedbackMode=${feedbackMode}. Question: ${question}`;
@@ -160,19 +160,9 @@ export default function (pi: ExtensionAPI) {
     }
   };
 
-  pi.registerCommand("codex-research", {
+  pi.registerCommand("ask-codex", {
     description: "Ask Codex CLI to do read-only web/repo research",
     handler: async (args, ctx) => sendCodexResearchRequest(args, ctx, "compact"),
-  });
-
-  pi.registerCommand("ask-codex", {
-    description: "Alias for /codex-research",
-    handler: async (args, ctx) => sendCodexResearchRequest(args, ctx, "compact"),
-  });
-
-  pi.registerCommand("codex-transcript", {
-    description: "Ask Codex with verbose transcript progress",
-    handler: async (args, ctx) => sendCodexResearchRequest(args, ctx, "transcript"),
   });
 
   pi.registerTool({

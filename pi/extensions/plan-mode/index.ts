@@ -178,9 +178,14 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 
 	function updateStatus(ctx: ExtensionContext): void {
 		// The installed todo extension is the single source of truth for task UI.
-		// Do not render any plan-mode status or widget; clear legacy UI keys.
+		// Keep plan-mode to a compact mode indicator only: no checklist, no task count.
 		ctx.ui.setWidget("plan-mode-todos", undefined);
-		ctx.ui.setStatus("plan-mode", undefined);
+
+		if (planModeEnabled) {
+			ctx.ui.setStatus("plan-mode", ctx.ui.theme.fg("warning", "⏸ plan"));
+		} else {
+			ctx.ui.setStatus("plan-mode", undefined);
+		}
 	}
 
 	function toolNames(tools: Array<string | { name: string }>): string[] {

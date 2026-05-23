@@ -241,16 +241,11 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 
 		updateStatus(ctx);
 		persistState();
-		pi.sendMessage(
-			{
-				customType: "plan-mode-approved",
-				content:
-					planSteps.length > 0
-						? `Plan approved. First create todos in the installed todo extension by calling the todo tool once per approved plan step with action=\"create\", subject=<step text>, description=\"Approved plan step from /plan\". Then execute the approved plan exactly as written. Start with step 1: ${planSteps[0].text}\n\nApproved plan steps:\n${planSteps.map((step) => `${step.step}. ${step.text}`).join("\n")}\n\nAfter completing each step, include [DONE:n] for that step number.`
-						: "Plan approved. Execute the plan exactly as written.",
-				display: false,
-			},
-			{ triggerTurn: true },
+		pi.sendUserMessage(
+			planSteps.length > 0
+				? `Plan approved. First create todos in the installed todo extension by calling the todo tool once per approved plan step with action=\"create\", subject=<step text>, description=\"Approved plan step from /plan\". Then execute the approved plan exactly as written. Start with step 1: ${planSteps[0].text}\n\nApproved plan steps:\n${planSteps.map((step) => `${step.step}. ${step.text}`).join("\n")}\n\nAfter completing each step, include [DONE:n] for that step number.`
+				: "Plan approved. Execute the plan exactly as written.",
+			{ deliverAs: "followUp" },
 		);
 	}
 
